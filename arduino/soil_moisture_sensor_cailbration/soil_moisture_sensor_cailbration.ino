@@ -6,18 +6,22 @@ const int sensorpower = 8;
 const int LED1 = 2;
 const int LED2 = 3;
 const int LED3 = 4;
-const int pumppin = 11;
 
 // variable for sensor reading
 int sensor;
 
 // delay time between sensor readings (milliseconds)
-const int delayTime = 1; 
+// this helps prevent the sensor from corroding by
+// not leaving it powered on all the time
+// (note: the Tinkercad simulation can run slowly,
+// you may want to decrease the delay time if running
+// this in Tinkercad
+const int delayTime = 1000; 
 
 // "wet" and "dry" thresholds - these require calibration
+int wetness = 0;
 int wet = 800;
 int dry = 500;
-
 
 void setup(){ // code that only runs once
   // set pins as outputs
@@ -25,7 +29,6 @@ void setup(){ // code that only runs once
   pinMode(LED2,OUTPUT);
   pinMode(LED3,OUTPUT);
   pinMode(sensorpower,OUTPUT);
-  pinMode(pumppin,OUTPUT);
   
   // initialize serial communication
   Serial.begin(9600);
@@ -41,30 +44,26 @@ void loop(){ // code that loops forever
   digitalWrite(sensorpower,LOW);
   
   // print sensor reading
-  Serial.println(sensor);
+  Serial.println(wetness);
   
   // If sensor reading is greater than "wet" threshold,
   // turn on the blue LED. If it is less than the "dry"
-  // threshold, turn on the red LED and the pump. 
-  // If it is in between the two values, turn on 
-  // the yellow LED.
+  // threshold, turn on the red LED. If it is in between
+  // the two values, turn on the yellow LED.
   if(sensor>wet){
     digitalWrite(LED1,LOW);
     digitalWrite(LED2,LOW);
     digitalWrite(LED3,HIGH);
-    digitalWrite(pumppin,LOW);
   }
   else if(sensor<dry){
     digitalWrite(LED1,HIGH);
     digitalWrite(LED2,LOW);
     digitalWrite(LED3,LOW);
-    digitalWrite(pumppin,HIGH);
   }
   else{
     digitalWrite(LED1,LOW);
     digitalWrite(LED2,HIGH);
     digitalWrite(LED3,LOW);
-    digitalWrite(pumppin,LOW);
   }
   
   // wait before taking next reading

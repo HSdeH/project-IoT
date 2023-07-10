@@ -7,8 +7,27 @@ IPAddress ip(192, 168, 1, 12);
 
 EthernetServer server(80);  // port 80 is default for HTTP
 
+int sensorpin = A0;
+int sensorpower = 8;
+int LED1 = 2;
+int LED2 = 3;
+int LED3 = 4;
+int pumppin = 11;
+
+// variable for sensor reading
+int sensor;
+
+// delay time between sensor readings (milliseconds)
+const int delayTime = 1; 
+
+// "wet" and "dry" thresholds - these require calibration
+int wetness = 0;
+int wet = 800;
+int dry = 500;
+
 void setup() 
 {
+
   Serial.begin(9600);
 
   // Start the Ethernet connection and the server:
@@ -17,10 +36,64 @@ void setup()
   
   Serial.print("Server is at ");
   Serial.println(Ethernet.localIP());
+
+  pinMode(LED1,OUTPUT);
+  pinMode(LED2,OUTPUT);
+  pinMode(LED3,OUTPUT);
+  pinMode(sensorpower,OUTPUT);
+  pinMode(pumppin,OUTPUT);
+
 }
 
 void loop() 
 {
+    digitalWrite(sensorpower,HIGH);
+  delay(10);
+  // take reading from sensor
+  sensor = analogRead(sensorpin);
+    wetness = sensor / 8;
+  if(wetness>100)
+  {
+    wetness = 100;
+  }
+
+  // turn sensor off to help prevent corrosion
+  digitalWrite(sensorpower,LOW);
+  
+  // print sensor reading
+  Serial.println(sensor);
+  //Serial.print("Server is at ");
+  //Serial.println(Ethernet.localIP());
+
+
+  
+  // If sensor reading is greater than "wet" threshold,
+  // turn on the blue LED. If it is less than the "dry"
+  // threshold, turn on the red LED and the pump. 
+  // If it is in between the two values, turn on 
+  // the yellow LED.
+  if(sensor>wet){
+    digitalWrite(LED1,LOW);
+    digitalWrite(LED2,LOW);
+    digitalWrite(LED3,HIGH);
+    digitalWrite(pumppin,LOW);
+  }
+  else if(sensor<dry){
+    digitalWrite(LED1,HIGH);
+    digitalWrite(LED2,LOW);
+    digitalWrite(LED3,LOW);
+    digitalWrite(pumppin,HIGH);
+  }
+  else{
+    digitalWrite(LED1,LOW);
+    digitalWrite(LED2,HIGH);
+    digitalWrite(LED3,LOW);
+    digitalWrite(pumppin,LOW);
+  }
+  
+  // wait before taking next reading
+  delay(delayTime);
+
   // Listen for incoming clients
   EthernetClient client = server.available();
   if (client) 
@@ -47,8 +120,10 @@ void loop()
           client.println("<html>");
 
           client.println("<body>");
-          client.println("<h1>Welkom op mijn mooie Arduino website</h1>");
-          client.println("<p>HTML Hello World.</p>");
+          client.println("<h1>MEETING NATHEID</h1>");
+          client.print(wetness);
+          client.println("%");
+
           client.println("</body>");
 
           // Add a meta refresh tag, so the browser pulls again every 5 seconds:
